@@ -17,7 +17,7 @@ ramzinexURL = "https://publicapi.ramzinex.com/exchange/api/v1.0/exchange/pairs?b
 
 def start(update: Update, context: CallbackContext) -> None:
     users: list = []
-    with open('Bot/users.json', encoding="utf8") as f:
+    with open('users.json', encoding="utf8") as f:
         users = json.load(f).get("users")
     savedData: dict = {}
     for key, value in update.message.chat.to_dict().items():
@@ -26,7 +26,7 @@ def start(update: Update, context: CallbackContext) -> None:
     res: list = []
     [res.append(x) for x in users if x not in res]
     res = {"users": res}
-    with open('Bot/users.json', 'w', encoding='utf-8') as f:
+    with open('users.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(res, ensure_ascii=False, indent=4))
     update.message.reply_text("""
     سلام
@@ -36,7 +36,7 @@ def start(update: Update, context: CallbackContext) -> None:
     شروع دوباره بات => /start
     قیمت ارزهای دیجیتال => /price
     پشتیبانی => /help
-    10/15/2021""")
+    """)
 
 
 def price(update: Update, context: CallbackContext) -> None:
@@ -46,7 +46,7 @@ def price(update: Update, context: CallbackContext) -> None:
     keyboard: list = []
     for i in range(len(data.get("data"))):
         keyboard.append([InlineKeyboardButton(
-            str(data.get("data")[i].get("name").get("fa")), callback_data=str(i))])
+            str(data.get("data")[i].get("name").get("fa"))+"( "+str(data.get("data")[i].get("name").get("en"))[:-5]+" ) ", callback_data=str(i))])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -60,12 +60,21 @@ def button(update: Update, context: CallbackContext) -> None:
     with open('ramzinex.json') as f:
         data = json.load(f)
     query.answer()
+    lastChange = ""
+    change = str(data.get("data")[int(query.data)].get(
+        "financial").get("last24h").get("change_percent"))
+    if(change[0] == "-"):
+        print(change[:-1], "2")
+        lastChange = str(abs(float(change)))+"-"
+    else:
+        lastChange = str(abs(float(change)))+"+"
+
     w = """
             %s
             خرید : %s
             فروش : %s
             تغییر : %s
-            """ % (data.get("data")[int(query.data)].get("name").get("fa"), data.get("data")[int(query.data)].get("sell"), data.get("data")[int(query.data)].get("buy"), data.get("data")[int(query.data)].get("financial").get("last24h").get("change_percent"))
+            """ % (data.get("data")[int(query.data)].get("name").get("fa")+" ( "+data.get("data")[int(query.data)].get("name").get("en")[:-5]+" ) ", data.get("data")[int(query.data)].get("sell"), data.get("data")[int(query.data)].get("buy"), lastChange)
     query.edit_message_text(text=w)
 
 
@@ -76,7 +85,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     """Run the bot."""
-    updater = Updater("2094043841:AAGVnQoXFMU8LJ63_zdzq2X2uvnxeJYc54o")
+    updater = Updater("2062555284:AAG0sx94S9-kVfLG32fO5mZh7Q4aXtuC-f4")
 
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CommandHandler('price', price))
